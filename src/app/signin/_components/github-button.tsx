@@ -8,6 +8,7 @@ export function GitHubButton() {
   const signIn = async () => {
     const data = await authClient.signIn.social({
       provider: 'github',
+      callbackURL: '/dashboard',
     });
     console.log('Sign-in response:', data);
   };
