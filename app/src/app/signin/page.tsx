@@ -1,3 +1,4 @@
+import { CognitoButton } from './_components/cognito-button';
 import { GitHubButton } from './_components/github-button';
 
 export default function SignIn() {
@@ -48,6 +49,7 @@ export default function SignIn() {
           <Splitter />
 
           <div className="flex flex-col gap-4">
+            <CognitoButton />
             <GitHubButton />
           </div>
         </div>
