@@ -13,7 +13,6 @@ export class AuthStack extends Stack {
     const userPool = new cognito.UserPool(this, "UserPool", {
       userPoolName: `${props.resourceNamePrefix}-user-pool`,
       signInAliases: {
-        username: true,
         email: true,
       },
       standardAttributes: {
