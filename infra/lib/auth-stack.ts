@@ -1,5 +1,5 @@
 import { aws_cognito as cognito } from "aws-cdk-lib";
-import { Duration, Stack, StackProps } from "aws-cdk-lib/core";
+import { CfnOutput, Duration, Stack, StackProps } from "aws-cdk-lib/core";
 import { Construct } from "constructs";
 
 export interface AuthStackProps extends StackProps {
@@ -59,6 +59,21 @@ export class AuthStack extends Stack {
       userPoolId: userPool.userPoolId,
       clientId: appClient.userPoolClientId,
       useCognitoProvidedValues: true,
+    });
+
+    new CfnOutput(this, "UserPoolId", {
+      value: userPool.userPoolId,
+      exportName: `${props.resourceNamePrefix}-user-pool-id`,
+    });
+
+    new CfnOutput(this, "UserPoolDomain", {
+      value: `https://${props.resourceNamePrefix}.auth.${this.region}.amazoncognito.com`,
+      exportName: `${props.resourceNamePrefix}-user-pool-domain`,
+    });
+
+    new CfnOutput(this, "AppClientId", {
+      value: appClient.userPoolClientId,
+      exportName: `${props.resourceNamePrefix}-app-client-id`,
     });
   }
 }
