@@ -10,7 +10,7 @@ export class AuthStack extends Stack {
   constructor(scope: Construct, id: string, props: AuthStackProps) {
     super(scope, id, props);
 
-    const pool = new cognito.UserPool(this, "UserPool", {
+    const userPool = new cognito.UserPool(this, "UserPool", {
       userPoolName: `${props.resourceNamePrefix}-user-pool`,
       signInAliases: {
         username: true,
@@ -24,7 +24,7 @@ export class AuthStack extends Stack {
       },
     });
 
-    pool.addClient("AppClient", {
+    const appClient = userPool.addClient("AppClient", {
       userPoolClientName: `${props.resourceNamePrefix}-app-client`,
       oAuth: {
         flows: {
@@ -48,11 +48,17 @@ export class AuthStack extends Stack {
       authSessionValidity: Duration.minutes(5),
     });
 
-    pool.addDomain("CognitoDomain", {
+    userPool.addDomain("CognitoDomain", {
       cognitoDomain: {
         domainPrefix: props.resourceNamePrefix,
       },
       managedLoginVersion: cognito.ManagedLoginVersion.NEWER_MANAGED_LOGIN,
+    });
+
+    new cognito.CfnManagedLoginBranding(this, "ManagedLoginBranding", {
+      userPoolId: userPool.userPoolId,
+      clientId: appClient.userPoolClientId,
+      useCognitoProvidedValues: true,
     });
   }
 }
