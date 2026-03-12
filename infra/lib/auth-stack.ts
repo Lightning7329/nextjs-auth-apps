@@ -37,8 +37,14 @@ export class AuthStack extends Stack {
           cognito.OAuthScope.PROFILE,
           cognito.OAuthScope.COGNITO_ADMIN,
         ],
-        callbackUrls: ["http://localhost:3000/api/auth/callback/cognito"],
-        logoutUrls: ["http://localhost:3000/signin"],
+        callbackUrls: [
+          "http://localhost:3000/api/auth/callback/cognito",
+          "http://localhost:3001/api/auth/callback/cognito",
+        ],
+        logoutUrls: [
+          "http://localhost:3000/signin",
+          "http://localhost:3001/signin",
+        ],
       },
       generateSecret: true,
       idTokenValidity: Duration.minutes(7),

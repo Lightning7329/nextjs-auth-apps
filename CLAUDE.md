@@ -4,17 +4,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Structure
 
-This monorepo contains two projects:
+This monorepo contains three projects:
 
 - @app — Next.js 16 application with Better Auth
+- @authjs-app — Next.js 16 application with Auth.js (next-auth v5)
 - @infra — AWS CDK infrastructure for Cognito User Pool
 
 Package manager: **pnpm**
 
-## App Commands (`app/`)
+## App Commands (`app/`) — Better Auth
 
 ```bash
 pnpm dev        # Start dev server (http://localhost:3000)
+pnpm build      # Production build
+pnpm lint       # Run ESLint
+pnpm format     # Run Prettier
+```
+
+## Auth.js App Commands (`authjs-app/`) — Auth.js
+
+```bash
+pnpm dev        # Start dev server (http://localhost:3001)
 pnpm build      # Production build
 pnpm lint       # Run ESLint
 pnpm format     # Run Prettier
@@ -34,7 +44,7 @@ Run a single infra test: `pnpm test -- --testPathPattern=<pattern>`
 
 ## Architecture
 
-### Authentication Flow
+### Authentication Flow — @app (Better Auth)
 
 Better Auth (`better-auth`) handles all auth logic. It is configured in `app/src/lib/better-auth/`:
 
@@ -43,16 +53,27 @@ Better Auth (`better-auth`) handles all auth logic. It is configured in `app/src
 
 The API route at `app/src/app/api/auth/[...all]/route.ts` delegates all auth requests to Better Auth via `toNextJsHandler`.
 
-OAuth providers configured:
+### Authentication Flow — @authjs-app (Auth.js)
+
+Auth.js (`next-auth` v5) handles all auth logic. It is configured in @authjs-app/src/lib/auth/ :
+
+- `config.ts` — NextAuth config with Cognito and GitHub OAuth providers
+- `auth.ts` — exports `handlers`, `auth`, `signIn`, `signOut` from NextAuth
+- `actions.ts` — Server Actions for sign-in / sign-out (called from client components)
+
+The API route at @authjs-app/src/app/api/auth/[...nextauth]/route.ts delegates all auth requests to Auth.js handlers. Session strategy is JWT (no database required).
+
+### OAuth Providers (shared)
 
 - **AWS Cognito** — via Managed Login (custom domain at `nextjs-better-auth.auth.ap-northeast-1.amazoncognito.com`)
 - **GitHub** — standard OAuth app
 
-### Route Structure
+### Route Structure (shared by both apps)
 
 - `/signin` — public sign-in page with OAuth buttons
 - `/(authorized)/dashboard` — protected route group; the layout at `(authorized)/layout.tsx` enforces authentication
-- `/api/auth/[...all]` — Better Auth API handler
+- `/api/auth/[...all]` — Better Auth API handler (@app)
+- `/api/auth/[...nextauth]` — Auth.js API handler (@authjs-app)
 
 ### Infrastructure (CDK)
 
@@ -81,4 +102,16 @@ Required in `app/.env`:
 | `GITHUB_CLIENT_ID` | GitHub OAuth app client ID |
 | `GITHUB_CLIENT_SECRET` | GitHub OAuth app client secret |
 
-Cognito values are output by `cdk deploy`. Callback URL configured in CDK: `http://localhost:3000/api/auth/callback/cognito`.
+Required in `authjs-app/.env`:
+
+| Variable | Purpose |
+| --- | --- |
+| `AUTH_SECRET` | Auth.js session secret (generate with `npx auth secret`) |
+| `AUTH_URL` | App base URL (default: `http://localhost:3001`) |
+| `AUTH_COGNITO_ID` | Cognito app client ID |
+| `AUTH_COGNITO_SECRET` | Cognito app client secret |
+| `AUTH_COGNITO_ISSUER` | Cognito issuer URL (`https://cognito-idp.{region}.amazonaws.com/{userPoolId}`) |
+| `AUTH_GITHUB_ID` | GitHub OAuth app client ID |
+| `AUTH_GITHUB_SECRET` | GitHub OAuth app client secret |
+
+Cognito values are output by `cdk deploy`. Callback URLs configured in CDK: `http://localhost:3000/api/auth/callback/cognito` and `http://localhost:3001/api/auth/callback/cognito`.
