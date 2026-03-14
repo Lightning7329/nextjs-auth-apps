@@ -1,5 +1,11 @@
 import { aws_cognito as cognito } from "aws-cdk-lib";
-import { CfnOutput, Duration, Stack, StackProps } from "aws-cdk-lib/core";
+import {
+  CfnOutput,
+  Duration,
+  RemovalPolicy,
+  Stack,
+  StackProps,
+} from "aws-cdk-lib/core";
 import { Construct } from "constructs";
 
 export interface AuthStackProps extends StackProps {
@@ -21,6 +27,7 @@ export class AuthStack extends Stack {
           mutable: true,
         },
       },
+      removalPolicy: RemovalPolicy.DESTROY,
     });
 
     const appClient = userPool.addClient("AppClient", {
