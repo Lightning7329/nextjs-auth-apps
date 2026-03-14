@@ -6,13 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This monorepo contains three projects:
 
-- @app — Next.js 16 application with Better Auth
+- @better-auth-app — Next.js 16 application with Better Auth
 - @authjs-app — Next.js 16 application with Auth.js (next-auth v5)
 - @infra — AWS CDK infrastructure for Cognito User Pool and DynamoDB Session Table
 
 Package manager: **pnpm**
 
-## App Commands (`app/`) — Better Auth
+## App Commands (`better-auth-app/`) — Better Auth
 
 ```bash
 pnpm dev        # Start dev server (http://localhost:3000)
@@ -44,35 +44,35 @@ Run a single infra test: `pnpm test -- --testPathPattern=<pattern>`
 
 ## Architecture
 
-### Authentication Flow — @app (Better Auth)
+### Authentication Flow — @better-auth-app (Better Auth)
 
-Better Auth (`better-auth`) handles all auth logic. It is configured in `app/src/lib/better-auth/`:
+Better Auth (`better-auth`) handles all auth logic. It is configured in `better-auth-app/src/lib/better-auth/`:
 
 - `auth.ts` — server-side config with Cognito and GitHub OAuth providers
 - `auth-client.ts` — client-side auth client
 
-The API route at `app/src/app/api/auth/[...all]/route.ts` delegates all auth requests to Better Auth via `toNextJsHandler`.
+The API route at `better-auth-app/src/app/api/auth/[...all]/route.ts` delegates all auth requests to Better Auth via `toNextJsHandler`.
 
 ### Authentication Flow — @authjs-app (Auth.js)
 
-Auth.js (`next-auth` v5) handles all auth logic. It is configured in @authjs-app/src/lib/auth/ :
+Auth.js (`next-auth` v5) handles all auth logic. It is configured in `authjs-app/src/lib/auth/`:
 
-- `config.ts` — NextAuth config with Cognito and GitHub OAuth providers
+- `config.ts` — NextAuth config with Cognito and GitHub OAuth providers, DynamoDB adapter
 - `auth.ts` — exports `handlers`, `auth`, `signIn`, `signOut` from NextAuth
 - `actions.ts` — Server Actions for sign-in / sign-out (called from client components)
 
-The API route at @authjs-app/src/app/api/auth/[...nextauth]/route.ts delegates all auth requests to Auth.js handlers. Session strategy is `database` using DynamoDB adapter (`@auth/dynamodb-adapter`).
+The API route at `authjs-app/src/app/api/auth/[...nextauth]/route.ts` delegates all auth requests to Auth.js handlers. Session strategy is `database` using DynamoDB adapter (`@auth/dynamodb-adapter`).
 
 ### OAuth Providers (shared)
 
-- **AWS Cognito** — via Managed Login (custom domain at `nextjs-better-auth.auth.ap-northeast-1.amazoncognito.com`)
+- **AWS Cognito** — via Managed Login (custom domain at `nextjs-auth-apps-idp.auth.ap-northeast-1.amazoncognito.com`)
 - **GitHub** — standard OAuth app
 
 ### Route Structure (shared by both apps)
 
 - `/signin` — public sign-in page with OAuth buttons
 - `/(authorized)/dashboard` — protected route group; the layout at `(authorized)/layout.tsx` enforces authentication
-- `/api/auth/[...all]` — Better Auth API handler (@app)
+- `/api/auth/[...all]` — Better Auth API handler (@better-auth-app)
 - `/api/auth/[...nextauth]` — Auth.js API handler (@authjs-app)
 
 ### Infrastructure (CDK)
@@ -84,16 +84,16 @@ The API route at @authjs-app/src/app/api/auth/[...nextauth]/route.ts delegates a
 - Cognito domain with Newer Managed Login branding
 - CloudFormation Outputs: User Pool ID, Domain URL, App Client ID
 
-`infra/lib/session-stack.ts` defines `SessionStack` that provisions:
+`infra/lib/authjs-session-stack.ts` defines `SessionStack` that provisions:
 
-- DynamoDB Table (`nextjs-better-auth-session-table`) with PK/SK and GSI1, TTL on `expires`
+- DynamoDB Table (`nextjs-auth-apps-authjs-session-table`) with PK/SK and GSI1, TTL on `expires`
 - CloudFormation Outputs: Table Name, Table ARN
 
-The CDK app entry is `infra/bin/app.ts`. AWS account and region are read from environment variables (`CDK_DEFAULT_ACCOUNT`, `CDK_DEFAULT_REGION`). Resource prefix is `nextjs-better-auth`.
+The CDK app entry is `infra/bin/app.ts`. AWS account and region are read from environment variables (`CDK_DEFAULT_ACCOUNT`, `CDK_DEFAULT_REGION`). Resource prefix is `nextjs-auth-apps`.
 
 ### Environment Variables
 
-Required in `app/.env`:
+Required in `better-auth-app/.env`:
 
 | Variable | Purpose |
 | --- | --- |
@@ -118,7 +118,7 @@ Required in `authjs-app/.env`:
 | `AUTH_COGNITO_ISSUER` | Cognito issuer URL (`https://cognito-idp.{region}.amazonaws.com/{userPoolId}`) |
 | `AUTH_GITHUB_ID` | GitHub OAuth app client ID |
 | `AUTH_GITHUB_SECRET` | GitHub OAuth app client secret |
-| `AUTH_DYNAMODB_TABLE_NAME` | DynamoDB テーブル名 (`nextjs-better-auth-session-table`) |
+| `AUTH_DYNAMODB_TABLE_NAME` | DynamoDB テーブル名 (`nextjs-auth-apps-authjs-session-table`) |
 | `AUTH_DYNAMODB_REGION` | DynamoDB リージョン (デフォルト: `ap-northeast-1`) |
 
 Cognito values are output by `cdk deploy`. Callback URLs configured in CDK: `http://localhost:3000/api/auth/callback/cognito` and `http://localhost:3001/api/auth/callback/cognito`.
