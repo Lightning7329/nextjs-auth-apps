@@ -8,7 +8,7 @@ This monorepo contains three projects:
 
 - @app — Next.js 16 application with Better Auth
 - @authjs-app — Next.js 16 application with Auth.js (next-auth v5)
-- @infra — AWS CDK infrastructure for Cognito User Pool
+- @infra — AWS CDK infrastructure for Cognito User Pool and DynamoDB Session Table
 
 Package manager: **pnpm**
 
@@ -61,7 +61,7 @@ Auth.js (`next-auth` v5) handles all auth logic. It is configured in @authjs-app
 - `auth.ts` — exports `handlers`, `auth`, `signIn`, `signOut` from NextAuth
 - `actions.ts` — Server Actions for sign-in / sign-out (called from client components)
 
-The API route at @authjs-app/src/app/api/auth/[...nextauth]/route.ts delegates all auth requests to Auth.js handlers. Session strategy is JWT (no database required).
+The API route at @authjs-app/src/app/api/auth/[...nextauth]/route.ts delegates all auth requests to Auth.js handlers. Session strategy is `database` using DynamoDB adapter (`@auth/dynamodb-adapter`).
 
 ### OAuth Providers (shared)
 
@@ -77,12 +77,17 @@ The API route at @authjs-app/src/app/api/auth/[...nextauth]/route.ts delegates a
 
 ### Infrastructure (CDK)
 
-`infra/lib/auth-stack.ts` defines a single `AuthStack` that provisions:
+`infra/lib/auth-stack.ts` defines `AuthStack` that provisions:
 
 - Cognito User Pool with email as username
 - App Client with authorization code grant flow
 - Cognito domain with Newer Managed Login branding
 - CloudFormation Outputs: User Pool ID, Domain URL, App Client ID
+
+`infra/lib/session-stack.ts` defines `SessionStack` that provisions:
+
+- DynamoDB Table (`nextjs-better-auth-session-table`) with PK/SK and GSI1, TTL on `expires`
+- CloudFormation Outputs: Table Name, Table ARN
 
 The CDK app entry is `infra/bin/app.ts`. AWS account and region are read from environment variables (`CDK_DEFAULT_ACCOUNT`, `CDK_DEFAULT_REGION`). Resource prefix is `nextjs-better-auth`.
 
@@ -113,5 +118,7 @@ Required in `authjs-app/.env`:
 | `AUTH_COGNITO_ISSUER` | Cognito issuer URL (`https://cognito-idp.{region}.amazonaws.com/{userPoolId}`) |
 | `AUTH_GITHUB_ID` | GitHub OAuth app client ID |
 | `AUTH_GITHUB_SECRET` | GitHub OAuth app client secret |
+| `AUTH_DYNAMODB_TABLE_NAME` | DynamoDB テーブル名 (`nextjs-better-auth-session-table`) |
+| `AUTH_DYNAMODB_REGION` | DynamoDB リージョン (デフォルト: `ap-northeast-1`) |
 
 Cognito values are output by `cdk deploy`. Callback URLs configured in CDK: `http://localhost:3000/api/auth/callback/cognito` and `http://localhost:3001/api/auth/callback/cognito`.
