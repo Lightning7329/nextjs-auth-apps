@@ -1,9 +1,14 @@
+import { DynamoDBAdapter } from '@auth/dynamodb-adapter';
+import type { NextAuthConfig } from 'next-auth';
 import Cognito from 'next-auth/providers/cognito';
 import GitHub from 'next-auth/providers/github';
 
-import type { NextAuthConfig } from 'next-auth';
+import { dynamoDocument } from '@/lib/dynamodb/dynamodb-client';
 
 export const authConfig = {
+  adapter: DynamoDBAdapter(dynamoDocument, {
+    tableName: process.env.AUTH_DYNAMODB_TABLE_NAME,
+  }),
   providers: [
     Cognito({
       clientId: process.env.AUTH_COGNITO_ID,
@@ -16,7 +21,7 @@ export const authConfig = {
     }),
   ],
   session: {
-    strategy: 'jwt',
+    strategy: 'database',
   },
   pages: {
     signIn: '/signin',
