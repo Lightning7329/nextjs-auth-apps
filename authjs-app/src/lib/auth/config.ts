@@ -14,6 +14,11 @@ export const authConfig = {
       clientId: process.env.AUTH_COGNITO_ID,
       clientSecret: process.env.AUTH_COGNITO_SECRET,
       issuer: process.env.AUTH_COGNITO_ISSUER,
+      authorization: {
+        params: {
+          scope: 'openid email profile aws.cognito.signin.user.admin',
+        },
+      },
     }),
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
