@@ -8,7 +8,11 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "local:bootstrap": "AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test cdklocal bootstrap --app 'ts-node --prefer-ts-exts bin/app-local.ts' --output .cdk-local.out",
+    "local:deploy": "AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test cdklocal deploy --all --app 'ts-node --prefer-ts-exts bin/app-local.ts' --output .cdk-local.out --require-approval never",
+    "local:diff": "AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test cdklocal diff --all --app 'ts-node --prefer-ts-exts bin/app-local.ts' --output .cdk-local.out",
+    "local:destroy": "AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test cdklocal destroy --all --app 'ts-node --prefer-ts-exts bin/app-local.ts' --output .cdk-local.out --force"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
@@ -16,6 +20,7 @@
     "jest": "^30.2.0",
     "ts-jest": "^29.4.6",
     "aws-cdk": "2.1109.0",
+    "aws-cdk-local": "^2.0.0",
     "ts-node": "^10.9.2",
     "typescript": "~5.9.3"
   },

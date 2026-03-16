@@ -24,6 +24,9 @@ importers:
       aws-cdk:
         specifier: 2.1109.0
         version: 2.1109.0
+      aws-cdk-local:
+        specifier: ^2.0.0
+        version: 2.19.2
       jest:
         specifier: ^30.2.0
         version: 30.2.0(@types/node@25.3.3)(ts-node@10.9.2(@types/node@25.3.3)(typescript@5.9.3))
@@ -582,6 +585,10 @@ packages:
       - yaml
       - mime-types
 
+  aws-cdk-local@2.19.2:
+    resolution: {integrity: sha512-1aT+yD4bN23Zgqjyd7AbLOFTK04xM8L7GBWPdAridqG20cyptnDCmRY7iYwWPx19LnJAA0HaiTxoWQTxDwuFLA==}
+    hasBin: true
+
   aws-cdk@2.1109.0:
     resolution: {integrity: sha512-K0jvr5ne9kvDrFfdzbPee/s2rH/iXdGoMHTp/0jaj1qFMOh49RkLWTnURa0sBpJJ0uB2sMzIx7YRmAn55wAy1Q==}
     engines: {node: '>= 18.0.0'}
@@ -736,6 +743,10 @@ packages:
 
   diff@4.0.4:
     resolution: {integrity: sha512-X07nttJQkwkfKfvTPG/KSnE2OMdcUCao6+eXF3wmnIQRn2aPAHH3VxDbDOdegkd6JbPsXqShpvEOHfAT+nCNwQ==}
+    engines: {node: '>=0.3.1'}
+
+  diff@5.2.2:
+    resolution: {integrity: sha512-vtcDfH3TOjP8UekytvnHH1o1P4FcUdt4eQ1Y+Abap1tk/OB2MWQvcwS2ClCd1zuIhc3JKOx6p3kod8Vfys3E+A==}
     engines: {node: '>=0.3.1'}
 
   eastasianwidth@0.2.0:
@@ -2085,6 +2096,10 @@ snapshots:
       '@aws-cdk/cloud-assembly-schema': 52.2.0
       constructs: 10.5.1
 
+  aws-cdk-local@2.19.2:
+    dependencies:
+      diff: 5.2.2
+
   aws-cdk@2.1109.0: {}
 
   babel-jest@30.2.0(@babel/core@7.29.0):
@@ -2234,6 +2249,8 @@ snapshots:
   detect-newline@3.1.0: {}
 
   diff@4.0.4: {}
+
+  diff@5.2.2: {}
 
   eastasianwidth@0.2.0: {}
 
