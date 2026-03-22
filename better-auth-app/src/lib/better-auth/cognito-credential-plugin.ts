@@ -3,6 +3,7 @@ import { createHmac } from "node:crypto";
 import {
   AdminInitiateAuthCommand,
   CognitoIdentityProviderClient,
+  type AdminInitiateAuthCommandOutput,
 } from "@aws-sdk/client-cognito-identity-provider";
 import type { BetterAuthPlugin } from "better-auth";
 import { createAuthEndpoint } from "better-auth/api";
@@ -55,8 +56,10 @@ export const cognitoCredential = (
             options.clientSecret,
           );
 
+          let result: AdminInitiateAuthCommandOutput;
+
           try {
-            const result = await cognitoClient.send(
+            result = await cognitoClient.send(
               new AdminInitiateAuthCommand({
                 AuthFlow: "ADMIN_USER_PASSWORD_AUTH",
                 UserPoolId: options.userPoolId,
@@ -116,6 +119,13 @@ export const cognitoCredential = (
             });
           }
 
+          const authResult = result.AuthenticationResult;
+          if (!authResult?.AccessToken) {
+            throw new APIError("INTERNAL_SERVER_ERROR", {
+              message: "No authentication result returned",
+            });
+          }
+
           // Find or create user
           const existingUser =
             await ctx.context.internalAdapter.findUserByEmail(email);
@@ -123,6 +133,26 @@ export const cognitoCredential = (
           let user;
           if (existingUser) {
             user = existingUser.user;
+
+            const existingAccount =
+              await ctx.context.internalAdapter.findAccountByProviderId(
+                email,
+                "cognito-credential",
+              );
+
+            if (existingAccount) {
+              await ctx.context.internalAdapter.updateAccount(
+                existingAccount.id,
+                {
+                  accessToken: authResult.AccessToken,
+                  refreshToken: authResult.RefreshToken,
+                  idToken: authResult.IdToken,
+                  accessTokenExpiresAt: new Date(
+                    Date.now() + (authResult.ExpiresIn ?? 3600) * 1000,
+                  ),
+                },
+              );
+            }
           } else {
             const created = await ctx.context.internalAdapter.createUser({
               email,
@@ -133,6 +163,12 @@ export const cognitoCredential = (
               userId: created.id,
               providerId: "cognito-credential",
               accountId: email,
+              accessToken: authResult.AccessToken,
+              refreshToken: authResult.RefreshToken,
+              idToken: authResult.IdToken,
+              accessTokenExpiresAt: new Date(
+                Date.now() + (authResult.ExpiresIn ?? 3600) * 1000,
+              ),
             });
             user = created;
           }
