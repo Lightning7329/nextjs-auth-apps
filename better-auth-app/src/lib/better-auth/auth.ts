@@ -1,14 +1,12 @@
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
-import path from 'path';
-
 import { PrismaClient } from '../../generated/prisma/client';
 
 import { cognitoCredential } from './plugins/cognito/cognito-credential-plugin';
 
 const adapter = new PrismaBetterSqlite3({
-  url: path.join(process.cwd(), 'sqlite.db'),
+  url: process.env.DATABASE_URL ?? 'file:./sqlite.db',
 });
 const prisma = new PrismaClient({ adapter });
 
