@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { FormField } from './form-field';
+
 export function CredentialForm() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -10,10 +12,12 @@ export function CredentialForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    let errorMessage = '';
 
     try {
       const res = await fetch('/api/auth/sign-in/cognito-credential', {
@@ -25,57 +29,40 @@ export function CredentialForm() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.message ?? 'Sign in failed');
-        return;
+        errorMessage = data.message;
       }
-
-      router.push('/dashboard');
     } catch {
-      setError('An unexpected error occurred');
-    } finally {
-      setLoading(false);
+      errorMessage = 'An unexpected error occurred';
     }
+
+    if (errorMessage) {
+      setError(errorMessage);
+    } else {
+      router.push('/dashboard');
+    }
+
+    setLoading(false);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="email"
-        >
-          Email
-        </label>
-        <input
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="email"
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </div>
-      <div className="mb-6">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="password"
-        >
-          Password
-        </label>
-        <input
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-          id="password"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
-      {error && (
-        <p className="text-red-500 text-sm mb-4">{error}</p>
-      )}
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <FormField
+        id="email"
+        label="Email"
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <FormField
+        id="password"
+        label="Password"
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      {error && <p className="text-red-500 text-sm">{error}</p>}
       <div className="flex items-center justify-between">
         <button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
