@@ -21,9 +21,7 @@ interface CognitoCredentialOptions {
   clientSecret: string;
 }
 
-export const cognitoCredential = (
-  options: CognitoCredentialOptions,
-) => {
+export const cognitoCredential = (options: CognitoCredentialOptions) => {
   const cognitoClient = new CognitoIdentityProviderClient({
     region: options.region,
   });
@@ -192,6 +190,13 @@ async function findOrCreateCognitoUser(
 
     if (existingAccount) {
       await adapter.updateAccount(existingAccount.id, tokenData);
+    } else {
+      await adapter.createAccount({
+        userId: existingUser.user.id,
+        providerId: PROVIDER_ID,
+        accountId: email,
+        ...tokenData,
+      });
     }
 
     return existingUser.user;
