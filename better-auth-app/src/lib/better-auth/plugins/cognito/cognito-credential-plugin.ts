@@ -12,7 +12,7 @@ import { setSessionCookie } from 'better-auth/cookies';
 import { APIError } from 'better-call';
 import { z } from 'zod';
 
-const PROVIDER_ID = 'cognito-credential';
+export const PROVIDER_ID = 'cognito-credential';
 
 interface CognitoCredentialOptions {
   region: string;
@@ -23,7 +23,7 @@ interface CognitoCredentialOptions {
 
 export const cognitoCredential = (
   options: CognitoCredentialOptions,
-): BetterAuthPlugin => {
+) => {
   const cognitoClient = new CognitoIdentityProviderClient({
     region: options.region,
   });
@@ -74,7 +74,7 @@ export const cognitoCredential = (
         },
       ),
     },
-  };
+  } satisfies BetterAuthPlugin;
 };
 
 function computeSecretHash(

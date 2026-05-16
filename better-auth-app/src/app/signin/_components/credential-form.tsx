@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { authClient } from '@/lib/better-auth/auth-client';
+
 import { FormField } from './form-field';
 
 export function CredentialForm() {
@@ -17,26 +19,13 @@ export function CredentialForm() {
     setError('');
     setLoading(true);
 
-    let errorMessage = '';
+    const { error: authError } = await authClient.signIn.cognitoCredential({
+      email,
+      password,
+    });
 
-    try {
-      const res = await fetch('/api/auth/sign-in/cognito-credential', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include',
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        errorMessage = data.message;
-      }
-    } catch {
-      errorMessage = 'An unexpected error occurred';
-    }
-
-    if (errorMessage) {
-      setError(errorMessage);
+    if (authError) {
+      setError(authError.message ?? 'An unexpected error occurred');
     } else {
       router.push('/dashboard');
     }

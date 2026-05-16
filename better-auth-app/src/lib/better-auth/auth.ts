@@ -5,7 +5,7 @@ import path from 'path';
 
 import { PrismaClient } from '../../generated/prisma/client';
 
-import { cognitoCredential } from './cognito-credential-plugin';
+import { cognitoCredential } from './plugins/cognito/cognito-credential-plugin';
 
 const adapter = new PrismaBetterSqlite3({
   url: path.join(process.cwd(), 'sqlite.db'),
