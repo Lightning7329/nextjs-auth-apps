@@ -32,6 +32,9 @@ export class AuthStack extends Stack {
 
     const appClient = userPool.addClient("AppClient", {
       userPoolClientName: `${props.resourceNamePrefix}-app-client`,
+      authFlows: {
+        adminUserPassword: true,
+      },
       oAuth: {
         flows: {
           authorizationCodeGrant: true,

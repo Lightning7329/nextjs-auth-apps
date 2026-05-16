@@ -1,6 +1,27 @@
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { betterAuth } from 'better-auth';
+import { prismaAdapter } from 'better-auth/adapters/prisma';
+import { PrismaClient } from '../../generated/prisma/client';
+
+import { cognitoCredential } from './plugins/cognito/cognito-credential-plugin';
+
+const adapter = new PrismaBetterSqlite3({
+  url: process.env.DATABASE_URL ?? 'file:./sqlite.db',
+});
+const prisma = new PrismaClient({ adapter });
 
 export const auth = betterAuth({
+  database: prismaAdapter(prisma, {
+    provider: 'sqlite',
+  }),
+  plugins: [
+    cognitoCredential({
+      region: process.env.COGNITO_REGION as string,
+      userPoolId: process.env.COGNITO_USER_POOL_ID as string,
+      clientId: process.env.COGNITO_CLIENT_ID as string,
+      clientSecret: process.env.COGNITO_CLIENT_SECRET as string,
+    }),
+  ],
   socialProviders: {
     cognito: {
       clientId: process.env.COGNITO_CLIENT_ID as string,

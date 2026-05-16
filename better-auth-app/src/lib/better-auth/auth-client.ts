@@ -1,3 +1,7 @@
 import { createAuthClient } from 'better-auth/react';
 
-export const authClient = createAuthClient();
+import { cognitoCredentialClient } from './plugins/cognito/cognito-credential-client-plugin';
+
+export const authClient = createAuthClient({
+  plugins: [cognitoCredentialClient()],
+});
