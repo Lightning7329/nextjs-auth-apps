@@ -21,6 +21,11 @@ interface CognitoCredentialOptions {
   clientSecret: string;
 }
 
+/**
+ * CognitoのADMIN_USER_PASSWORD_AUTHフローを使った認証プラグイン
+ * @param options
+ * @returns BetterAuthPluginオブジェクト
+ */
 export const cognitoCredential = (options: CognitoCredentialOptions) => {
   const cognitoClient = new CognitoIdentityProviderClient({
     region: options.region,
@@ -75,6 +80,9 @@ export const cognitoCredential = (options: CognitoCredentialOptions) => {
   } satisfies BetterAuthPlugin;
 };
 
+/**
+ * CognitoのADMIN_USER_PASSWORD_AUTHフローに使うシークレットハッシュを計算する
+ */
 function computeSecretHash(
   username: string,
   clientId: string,
@@ -85,6 +93,9 @@ function computeSecretHash(
     .digest('base64');
 }
 
+/**
+ * CognitoのAdminInitiateAuth APIを呼び出してユーザーを認証する
+ */
 async function authenticateWithCognito(
   cognitoClient: CognitoIdentityProviderClient,
   params: {
@@ -160,6 +171,10 @@ async function authenticateWithCognito(
   }
 }
 
+/**
+ * トークンの有効期限を計算する
+ * @description Cognitoは常にExpiresIn: 3600を返し、この値はカスタム不可のためフォールバックも同値で問題ない
+ */
 function tokenExpiresAt(expiresIn: number | undefined): Date {
   return new Date(Date.now() + (expiresIn ?? 3600) * 1000);
 }
